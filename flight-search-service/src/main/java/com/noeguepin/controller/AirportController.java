@@ -22,7 +22,7 @@ import com.noeguepin.dto.AirportResponse;
 import com.noeguepin.service.AirportService;
 
 @RestController
-@RequestMapping("/api/airports")
+@RequestMapping("/airports")
 @CrossOrigin(origins = "*")
 public class AirportController {
 	

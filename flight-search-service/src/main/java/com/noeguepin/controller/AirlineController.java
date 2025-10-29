@@ -24,7 +24,7 @@ import com.noeguepin.model.Airline;
 import com.noeguepin.service.AirlineService;
 
 @RestController
-@RequestMapping("/api/airlines")
+@RequestMapping("/airlines")
 @CrossOrigin(origins = "*")
 public class AirlineController {
 	

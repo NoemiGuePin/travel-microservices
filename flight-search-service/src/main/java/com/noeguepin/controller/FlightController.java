@@ -24,7 +24,7 @@ import com.noeguepin.dto.FlightSearchFilters;
 import com.noeguepin.service.FlightService;
 
 @RestController
-@RequestMapping("/api/flights")
+@RequestMapping("/flights")
 @CrossOrigin(origins = "*")
 public class FlightController {
 	

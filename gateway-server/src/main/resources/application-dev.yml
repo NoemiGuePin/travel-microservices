@@ -1,0 +1,42 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    gateway:
+      routes:
+        - id: flight-search-flights
+          uri: lb://flight-search-service
+          predicates:
+            - Path=/api/flights/**
+          filters:
+            - StripPrefix=1 
+        - id: flight-search-airlines
+          uri: lb://flight-search-service
+          predicates:
+            - Path=/api/airlines/**
+          filters:
+            - StripPrefix=1
+        - id: flight-search-airports
+          uri: lb://flight-search-service
+          predicates:
+            - Path=/api/airports/** 
+          filters:
+            - StripPrefix=1
+management:
+  server:
+    port: 9000
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always		
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: flight-search-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/flight_catalog
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+management:
+  server:
+    port: 9001
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized 
+server:
+  port: 8081
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka  
+    enabled: false
