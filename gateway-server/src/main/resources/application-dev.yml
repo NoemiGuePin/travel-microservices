@@ -24,6 +24,13 @@ spring:
             - Path=/api/airports/** 
           filters:
             - StripPrefix=1
+      default-filters:
+        - TokenRelay=
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/travel
 management:
   server:
     port: 9000
