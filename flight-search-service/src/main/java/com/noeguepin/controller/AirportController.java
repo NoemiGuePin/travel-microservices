@@ -46,7 +46,7 @@ public class AirportController {
 	@PostMapping
 	public ResponseEntity<AirportResponse> saveNewAirport(@RequestBody AirportRequest newAirport) {
 		AirportResponse newAirportSaved = airportService.saveNewAirport(newAirport);
-		URI location = URI.create("/api/airports/" + newAirportSaved.codeIATA());
+		URI location = URI.create("/airports/" + newAirportSaved.codeIATA());
 		return ResponseEntity.created(location).body(newAirportSaved);	
 	}
 	

@@ -49,7 +49,7 @@ public class FlightService {
 	    		.map(FlightResponse::new)
 	            .toList();   
 	}
-	
+
 	public FlightResponse getFlightByCodeFlight(String codeFlight) {
 		return flightRepository.findByCodeFlight(codeFlight)
 				.map(FlightResponse::new)
@@ -59,7 +59,7 @@ public class FlightService {
 	@Transactional
 	public FlightResponse updateFlight(String codeFlight, FlightRequest flightRequest) {
 		validateTimesOrder(flightRequest);
-		Flight existingFlight = findFlightByCodeIATAOrThrow(codeFlight);
+		Flight existingFlight = findFlightByCodeOrThrow(codeFlight);
 		existingFlight.setDepartureTime(flightRequest.departureTime());
 		existingFlight.setArrivalTime(flightRequest.arrivalTime());
 		existingFlight.setPrice(flightRequest.price());
@@ -69,29 +69,27 @@ public class FlightService {
 	
 	@Transactional
 	public void deleteFlightByCodeFlight(String codeFlight) {
-		Flight existingFlight = findFlightByCodeIATAOrThrow(codeFlight);
+		Flight existingFlight = findFlightByCodeOrThrow(codeFlight);
 		flightRepository.delete(existingFlight);	
 	}
 
 	@Transactional
 	public FlightResponse reserveSeats(String codeFlight, int seatsToReserve) {
 		if (seatsToReserve <= 0) throw new BadRequestException("Quantity must be greater than 0");
-		Flight flight = findFlightByCodeIATAOrThrow(codeFlight);
+		Flight flight = findFlightByCodeOrThrow(codeFlight);
 		if (flight.getAvailableSeats() < seatsToReserve) throw new SeatsException("Not enough available seats", SeatsErrorCode.SEATS_UNAVAILABLE);
 		flight.setAvailableSeats(flight.getAvailableSeats() - seatsToReserve);
-		flightRepository.save(flight);
-		return null;
+		return new FlightResponse(flightRepository.save(flight));
 	}
 	
 	@Transactional
 	public FlightResponse releaseSeats(String codeFlight, int seatsToRelease) {
 		if (seatsToRelease <= 0) throw new BadRequestException("Quantity must be greater than 0");
-		Flight flight = findFlightByCodeIATAOrThrow(codeFlight);
+		Flight flight = findFlightByCodeOrThrow(codeFlight);
 		int reservedSeats = flight.getTotalSeats() - flight.getAvailableSeats();
 		if(reservedSeats < seatsToRelease) throw new SeatsException("Cannot release more seats than total capacity", SeatsErrorCode.RELEASE_EXCEEDS_RESERVED);
 		flight.setAvailableSeats(flight.getAvailableSeats() + seatsToRelease);
-		flightRepository.save(flight);
-		return null;
+		return new FlightResponse(flightRepository.save(flight));
 	}
 	
 	@Transactional
@@ -174,7 +172,7 @@ public class FlightService {
 		
 	}
 
-	private Flight findFlightByCodeIATAOrThrow(String codeFlight) {
+	private Flight findFlightByCodeOrThrow(String codeFlight) {
 	    return flightRepository.findByCodeFlight(codeFlight)
 	            .orElseThrow(() -> new ResourceNotFoundException("Flight", "codeFlight", codeFlight));
 	}

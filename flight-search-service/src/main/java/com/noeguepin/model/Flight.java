@@ -31,7 +31,7 @@ public class Flight {
 	private Integer availableSeats;
 	
 	@Version
-	private Long version;  //Optimistic Locking: evitar que dos reservas simultaneas produzcan sobreventa
+	private long version;  //Optimistic Locking: evitar que dos reservas simultaneas produzcan sobreventa
 	
 	public Flight() {
 	}

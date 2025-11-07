@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +51,6 @@ public class FlightController {
 		
 		return ResponseEntity.ok(flightService.getFlightsByFilters(flightsSearchFilters, sortBy, direction));
 	}
-			
 	
 	@GetMapping("/{codeFlight}")
 	public ResponseEntity<FlightResponse> getFlightByCodeFlight(@PathVariable String codeFlight) {
@@ -60,7 +60,7 @@ public class FlightController {
 	@PostMapping
 	public ResponseEntity<FlightResponse> createFlight(@RequestBody FlightRequest flightRequest) {
 	    FlightResponse newFlightSaved = flightService.saveNewFlight(flightRequest);
-	    URI location = URI.create("/api/flights/" + newFlightSaved.codeFlight());
+	    URI location = URI.create("/flights/" + newFlightSaved.codeFlight());
 	    return ResponseEntity.created(location).body(newFlightSaved);
 	}
 
@@ -69,13 +69,15 @@ public class FlightController {
 	    return ResponseEntity.ok(flightService.updateFlight(codeFlight, flightRequest));
 	}
 	
-	@PostMapping("/{codeFlight}/seats/reserve")
+	@PostMapping("/internal/{codeFlight}/seats/reserve")
 	public ResponseEntity<FlightResponse> reserveSeats(@PathVariable String codeFlight, @RequestParam int seatsToReserve){
+		System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 		return ResponseEntity.ok(flightService.reserveSeats(codeFlight, seatsToReserve));
 	}
 	
-	@PostMapping("/{codeFlight}/seats/release")
+	@PostMapping("/internal/{codeFlight}/seats/release")
 	public ResponseEntity<FlightResponse> releaseSeats(@PathVariable String codeFlight, @RequestParam int seatsToRelease){
+		System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 		return ResponseEntity.ok(flightService.releaseSeats(codeFlight, seatsToRelease));
 	}
 	

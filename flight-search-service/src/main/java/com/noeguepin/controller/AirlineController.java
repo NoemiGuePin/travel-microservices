@@ -45,7 +45,7 @@ public class AirlineController {
 	@PostMapping
 	public ResponseEntity<AirlineResponse> saveNewAirline(@RequestBody AirlineRequest newAirline) {
 		AirlineResponse newAirlineSaved = airlineService.saveNewAirline(newAirline);
-		URI location = URI.create("/api/airlines/" + newAirlineSaved.codeIATA());
+		URI location = URI.create("/airlines/" + newAirlineSaved.codeIATA());
 		return ResponseEntity.created(location).body(newAirlineSaved);	
 	}
 	

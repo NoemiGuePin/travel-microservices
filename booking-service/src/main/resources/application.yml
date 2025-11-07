@@ -1,13 +1,23 @@
 spring:
-  application:
-    name: flight-search-service
   security:
     oauth2:
+      client:
+        registration:
+          booking-service:
+            provider: keycloak
+            client-id: booking-service
+            client-secret: 0ZsfkyWvYAkmpKltAz8LDTlDJtDF7CAj
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8180/realms/travel
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8180/realms/travel
+  application:
+    name: booking-service
   datasource:
-    url: jdbc:mysql://localhost:3306/flight_catalog
+    url: jdbc:mysql://localhost:3306/booking_service
     username: root
     password: admin
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,38 +31,26 @@ spring:
     defer-datasource-initialization: true
 management:
   server:
-    port: 9001
+    port: 9002
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,gateway
+        include: health,info,metrics,prometheus,gateway,mappings
   endpoint:
     health:
       show-details: always
 server:
-  port: 8081
+  port: 8082
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
+flight-service:
+  base-url: http://localhost:8081
 logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    root: INFO
   file:
     name: logs/app.log
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-  paths-to-match:
-    - /airlines/**
-    - /airports/**
-    - /flights/**
-  paths-to-exclude:
-    - /flights/internal/**
-  
+  level:
+    root: INFO
