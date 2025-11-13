@@ -1,4 +1,10 @@
 spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 5s
   security:
     oauth2:
       client:
@@ -49,8 +55,18 @@ eureka:
     prefer-ip-address: true
 flight-service:
   base-url: http://localhost:8081
+app:
+  notifications:
+    exchange: notifications.exchange
+    routingKey:
+      reservationCreated: reservation.created
+      reservationCancelled: reservation.cancelled
+      reservationUpdated: reservation.updated
 logging:
   file:
     name: logs/app.log
   level:
     root: INFO
+    org:
+      springframework:
+      amqp: DEBUG

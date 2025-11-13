@@ -4,6 +4,8 @@ import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.web.util.UriBuilder;
 
 import com.noeguepin.dto.ReservationRequest;
 import com.noeguepin.dto.ReservationResponse;
+import com.noeguepin.dto.events.UserInfo;
 import com.noeguepin.exception.ResourceNotFoundException;
 import com.noeguepin.exception.SeatsException;
 import com.noeguepin.model.Reservation;
@@ -26,18 +29,19 @@ import reactor.core.publisher.Mono;
 @Service
 public class ReservationService {
 	
-	@Autowired
-	private ReservationRepository reservationRepository;
-	
+	private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
+
+	private ReservationRepository reservationRepository;	
 	private final WebClient flightWebClient;
-	
 	private final AuthUser authUser;
+	private final NotificationEventPublisher notificationEventPublisher;
 
 	public ReservationService(ReservationRepository reservationRepository,
-            WebClient flightWebClient, AuthUser authUser) {
+            WebClient flightWebClient, AuthUser authUser, NotificationEventPublisher notificationEventPublisher) {
 		this.reservationRepository = reservationRepository;
 		this.flightWebClient = flightWebClient;
 		this.authUser = authUser;
+		this.notificationEventPublisher = notificationEventPublisher;
 	}
 	
 	public List<ReservationResponse> findVisibleBookings() {
@@ -58,17 +62,21 @@ public class ReservationService {
 				reservationRequest.flightCode(), 
 				authUser.sub(),
 				reservationRequest.passengersNumber());
-		return new ReservationResponse(reservationRepository.save(newReservation));
+		newReservation = reservationRepository.save(newReservation);
+		publishReservationCreatedEvent(newReservation);
+		return new ReservationResponse(newReservation);
 	}
-	
+
 	@Transactional
 	public ReservationResponse updateBooking(String bookingCode, int newPassengersNumber) throws AccessDeniedException {
 		Reservation reservation = findReservationByBookingCodeOrThrow(bookingCode);
 		assertOwnerOrAdmin(reservation);
+		ReservationResponse reservationUpdated = new ReservationResponse(reservation);
 		int passengerDifference = newPassengersNumber - reservation.getPassengersNumber();
-		if(passengerDifference > 0) return increaseNumberPassengersBooking(reservation, passengerDifference);
-		else if (passengerDifference < 0) return decreaseNumberPassengersBooking(reservation, Math.abs(passengerDifference));
-		else return new ReservationResponse(reservation);
+		if(passengerDifference > 0) reservationUpdated = increaseNumberPassengersBooking(reservation, passengerDifference);
+		else if (passengerDifference < 0) reservationUpdated = decreaseNumberPassengersBooking(reservation, Math.abs(passengerDifference));
+		publishReservationUpdateEvent(reservationUpdated);
+		return reservationUpdated;
 	}
 
 	@Transactional
@@ -76,7 +84,48 @@ public class ReservationService {
 		Reservation reservation = findReservationByBookingCodeOrThrow(bookingCode);
 		assertOwnerOrAdmin(reservation);
 		releaseSeatOrFail(reservation.getFlightCode(), reservation.getPassengersNumber());
-		reservationRepository.delete(reservation);		
+		reservationRepository.delete(reservation);
+		publishReservationCancelledEvent(bookingCode);
+	}
+	
+	private void publishReservationCreatedEvent(Reservation newReservation) {	    
+	    try {
+	        notificationEventPublisher.publishReservationCreated(
+	        		newReservation.getBookingCode(),
+	        		newReservation.getFlightCode(),
+	        		newReservation.getPassengersNumber(),
+	        		generateUserInfo()
+	        );
+	    } catch (Exception e) {
+	        log.warn("Failed to publish ReservationCreated event for bookingCode={}", newReservation.getBookingCode(), e);
+	    }		
+	}	
+	
+	private void publishReservationCancelledEvent(String bookingCode) {	    
+	    try {
+	        notificationEventPublisher.publishReservationCancelled(bookingCode, generateUserInfo());
+	    } catch (Exception e) {
+	        log.warn("Failed to publish ReservationCreated event for bookingCode={}", bookingCode, e);
+	    }		
+	}
+	
+	private void publishReservationUpdateEvent(ReservationResponse newReservation) {	    
+	    try {
+	        notificationEventPublisher.publishReservationUpdated(
+	        		newReservation.bookingCode(),
+	        		newReservation.flightCode(),
+	        		newReservation.passengersNumber(),
+	        		generateUserInfo()
+	        );
+	    } catch (Exception e) {
+	        log.warn("Failed to publish ReservationCreated event for bookingCode={}", newReservation.bookingCode(), e);
+	    }		
+	}
+	
+	private UserInfo generateUserInfo() {
+	    String userEmail = authUser.email();
+	    String userName  = authUser.name();	
+	    return new UserInfo(userEmail, userName == null ? "" : userName);	
 	}
 	
 	private String generateBookingCode() {
