@@ -1,0 +1,4 @@
+FROM eclipse-temurin:17-jre
+COPY target/*.jar booking.jar
+EXPOSE 8082   
+ENTRYPOINT ["java","-jar","/booking.jar"]

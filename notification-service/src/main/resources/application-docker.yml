@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: notification-service	
+  mail:
+    host: host.docker.internal
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+      smtp:
+        auth: false
+        starttls:
+          enable: false		
+  rabbitmq:
+    host: host.docker.internal
+    port: 5672
+    username: guest
+    password: guest
+server:
+  port: 8083
+management:
+  server:
+    port: 9003
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+logging:
+  file:
+    name: logs/app.log
+  level:
+    root: INFO
+    org:
+      springframework:
+        amqp: DEBUG
+app:
+  exchange: notifications.exchange
+  routingKey:
+    reservationCreated: reservation.created
+    reservationCancelled: reservation.cancelled
+    reservationUpdated: reservation.updated
+  queues:
+    reservationCreated: notifications.reservation-created.queue
+    reservationCancelled: notifications.reservation-cancelled.queue
+    reservationUpdated: notifications.reservation-updated.queue
