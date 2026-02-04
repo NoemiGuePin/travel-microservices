@@ -63,7 +63,7 @@ public class FlightService {
 		existingFlight.setDepartureTime(flightRequest.departureTime());
 		existingFlight.setArrivalTime(flightRequest.arrivalTime());
 		existingFlight.setPrice(flightRequest.price());
-		existingFlight.setTotalSeats(flightRequest.totalSeats());
+		//existingFlight.setTotalSeats(flightRequest.totalSeats());
 		return new FlightResponse(flightRepository.save(existingFlight));
 	}
 	
@@ -75,7 +75,7 @@ public class FlightService {
 
 	@Transactional
 	public FlightResponse reserveSeats(String codeFlight, int seatsToReserve) {
-		if (seatsToReserve <= 0) throw new BadRequestException("Quantity must be greater than 0");
+		if (seatsToReserve <= 0) throw new IllegalArgumentException("Quantity must be greater than 0");
 		Flight flight = findFlightByCodeOrThrow(codeFlight);
 		if (flight.getAvailableSeats() < seatsToReserve) throw new SeatsException("Not enough available seats", SeatsErrorCode.SEATS_UNAVAILABLE);
 		flight.setAvailableSeats(flight.getAvailableSeats() - seatsToReserve);
@@ -84,7 +84,7 @@ public class FlightService {
 	
 	@Transactional
 	public FlightResponse releaseSeats(String codeFlight, int seatsToRelease) {
-		if (seatsToRelease <= 0) throw new BadRequestException("Quantity must be greater than 0");
+		if (seatsToRelease <= 0) throw new IllegalArgumentException("Quantity must be greater than 0");
 		Flight flight = findFlightByCodeOrThrow(codeFlight);
 		int reservedSeats = flight.getTotalSeats() - flight.getAvailableSeats();
 		if(reservedSeats < seatsToRelease) throw new SeatsException("Cannot release more seats than total capacity", SeatsErrorCode.RELEASE_EXCEEDS_RESERVED);
@@ -125,12 +125,12 @@ public class FlightService {
 	
 	private void validateAirportsDifferent(Airport departureAirport, Airport arrivalAirport) {
 		if (departureAirport.getCodeIATA().equals(arrivalAirport.getCodeIATA())) 
-			throw new BadRequestException("Departure and arrival airports cannot be the same");
+			throw new IllegalArgumentException("Departure and arrival airports cannot be the same");
 	}
 
 	private void validateTimesOrder(FlightRequest flightRequest) {
 		if (!flightRequest.arrivalTime().isAfter(flightRequest.departureTime()))
-			throw new BadRequestException("Arrival time must be after departure time");
+			throw new IllegalArgumentException("Arrival time must be after departure time");
 	}
 
 	private void validateCodeFlightUniqueness(String codeFlight) {
@@ -141,7 +141,7 @@ public class FlightService {
 	
 	private Sort buildSort(String sortBy, String direction) {
 	    List<String> allowedSortFields = List.of("departureTime", "price");
-	    if (!allowedSortFields.contains(sortBy)) throw new BadRequestException("Invalid sort field: " + sortBy);
+	    if (!allowedSortFields.contains(sortBy)) throw new IllegalArgumentException("Invalid sort field: " + sortBy);
 	    Sort.Direction sortDirection = direction.equalsIgnoreCase("DESC")
 	            ? Sort.Direction.DESC
 	            : Sort.Direction.ASC;
@@ -164,11 +164,11 @@ public class FlightService {
 	private void validateRanges(FlightSearchFilters flightSearchFilters) {
 		if (flightSearchFilters.departureFrom() != null && flightSearchFilters.departureTo() != null &&
 				flightSearchFilters.departureFrom().isAfter(flightSearchFilters.departureTo())) 
-			throw new BadRequestException("The start date cannot be after the end date");
+			throw new IllegalArgumentException("The start date cannot be after the end date");
 	
 	    if (flightSearchFilters.minimumPrice() != null && flightSearchFilters.maximumPrice() != null && 
 	    		flightSearchFilters.minimumPrice() > flightSearchFilters.maximumPrice())
-	        throw new BadRequestException("The minimum price cannot be greater than the maximum price");		
+	        throw new IllegalArgumentException("The minimum price cannot be greater than the maximum price");
 		
 	}
 

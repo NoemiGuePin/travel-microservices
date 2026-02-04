@@ -3,9 +3,12 @@ package com.noeguepin.controller;
 import java.net.URI;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +26,7 @@ import com.noeguepin.service.AirportService;
 
 @RestController
 @RequestMapping("/airports")
+@Validated
 @CrossOrigin(origins = "*")
 public class AirportController {
 	
@@ -39,24 +43,24 @@ public class AirportController {
 	}
 	
 	@GetMapping("/{codeIATA}")
-	public ResponseEntity<AirportResponse> getAirportByCodeIATA(@PathVariable String codeIATA) {
+	public ResponseEntity<AirportResponse> getAirportByCodeIATA(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA) {
 		return ResponseEntity.ok(airportService.getAirportByCodeIATA(codeIATA));
 	}
 	
 	@PostMapping
-	public ResponseEntity<AirportResponse> saveNewAirport(@RequestBody AirportRequest newAirport) {
+	public ResponseEntity<AirportResponse> saveNewAirport(@Valid @RequestBody AirportRequest newAirport) {
 		AirportResponse newAirportSaved = airportService.saveNewAirport(newAirport);
 		URI location = URI.create("/airports/" + newAirportSaved.codeIATA());
 		return ResponseEntity.created(location).body(newAirportSaved);	
 	}
 	
 	@PutMapping("/{codeIATA}")
-	public ResponseEntity<AirportResponse> updateAirport(@PathVariable String codeIATA, @RequestBody AirportRequest airportRequest) {
+	public ResponseEntity<AirportResponse> updateAirport(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA, @RequestBody AirportRequest airportRequest) {
 		return ResponseEntity.ok(airportService.updateAirport(codeIATA, airportRequest));
 	}
 
 	@DeleteMapping("/{codeIATA}")
-	public ResponseEntity<Void> deleteAirport(@PathVariable String codeIATA) {
+	public ResponseEntity<Void> deleteAirport(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA) {
 	    airportService.deleteAirportByCodeIATA(codeIATA);
 	    return ResponseEntity.noContent().build();
 	}
