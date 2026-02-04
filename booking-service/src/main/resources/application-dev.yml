@@ -12,7 +12,7 @@ spring:
           booking-service:
             provider: keycloak
             client-id: booking-service
-            client-secret: 0ZsfkyWvYAkmpKltAz8LDTlDJtDF7CAj
+            client-secret: ${BOOKING_CLIENT_SECRET:}
             authorization-grant-type: client_credentials
         provider:
           keycloak:
