@@ -5,9 +5,12 @@ import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +29,9 @@ import com.noeguepin.service.FlightService;
 
 @RestController
 @RequestMapping("/flights")
+@Validated
 @CrossOrigin(origins = "*")
-public class FlightController {
+public class   FlightController {
 	
 	@Autowired
 	FlightService flightService;
@@ -53,36 +57,36 @@ public class FlightController {
 	}
 	
 	@GetMapping("/{codeFlight}")
-	public ResponseEntity<FlightResponse> getFlightByCodeFlight(@PathVariable String codeFlight) {
+	public ResponseEntity<FlightResponse> getFlightByCodeFlight(@PathVariable @NotBlank(message = "codeFlight cannot be blank") String codeFlight) {
 		return ResponseEntity.ok(flightService.getFlightByCodeFlight(codeFlight)); 	
 	}
 	
 	@PostMapping
-	public ResponseEntity<FlightResponse> createFlight(@RequestBody FlightRequest flightRequest) {
+	public ResponseEntity<FlightResponse> createFlight(@Valid @RequestBody FlightRequest flightRequest) {
 	    FlightResponse newFlightSaved = flightService.saveNewFlight(flightRequest);
 	    URI location = URI.create("/flights/" + newFlightSaved.codeFlight());
 	    return ResponseEntity.created(location).body(newFlightSaved);
 	}
 
 	@PutMapping("/{codeFlight}")
-	public ResponseEntity<FlightResponse> updateFlight(@PathVariable String codeFlight, @RequestBody FlightRequest flightRequest) {
+	public ResponseEntity<FlightResponse> updateFlight(@PathVariable @NotBlank(message = "codeFlight cannot be blank") String codeFlight, @RequestBody FlightRequest flightRequest) {
 	    return ResponseEntity.ok(flightService.updateFlight(codeFlight, flightRequest));
 	}
 	
 	@PostMapping("/internal/{codeFlight}/seats/reserve")
-	public ResponseEntity<FlightResponse> reserveSeats(@PathVariable String codeFlight, @RequestParam int seatsToReserve){
+	public ResponseEntity<FlightResponse> reserveSeats(@PathVariable @NotBlank(message = "codeFlight cannot be blank") String codeFlight, @RequestParam int seatsToReserve){
 		System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 		return ResponseEntity.ok(flightService.reserveSeats(codeFlight, seatsToReserve));
 	}
 	
 	@PostMapping("/internal/{codeFlight}/seats/release")
-	public ResponseEntity<FlightResponse> releaseSeats(@PathVariable String codeFlight, @RequestParam int seatsToRelease){
+	public ResponseEntity<FlightResponse> releaseSeats(@PathVariable @NotBlank(message = "codeFlight cannot be blank") String codeFlight, @RequestParam int seatsToRelease){
 		System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 		return ResponseEntity.ok(flightService.releaseSeats(codeFlight, seatsToRelease));
 	}
 	
 	@DeleteMapping("/{codeFlight}")
-	public ResponseEntity<Void> deleteFlight(@PathVariable String codeFlight) {
+	public ResponseEntity<Void> deleteFlight(@PathVariable @NotBlank(message = "codeFlight cannot be blank") String codeFlight) {
 	    flightService.deleteFlightByCodeFlight(codeFlight);
 	    return ResponseEntity.noContent().build();
 	}

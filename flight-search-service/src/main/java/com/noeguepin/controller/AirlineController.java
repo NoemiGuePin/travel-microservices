@@ -3,10 +3,13 @@ package com.noeguepin.controller;
 import java.net.URI;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +28,7 @@ import com.noeguepin.service.AirlineService;
 
 @RestController
 @RequestMapping("/airlines")
+@Validated
 @CrossOrigin(origins = "*")
 public class AirlineController {
 	
@@ -38,24 +42,24 @@ public class AirlineController {
 	}
 	
 	@GetMapping("/{codeIATA}")
-	public ResponseEntity<AirlineResponse> getAirlineByCodeIATA(@PathVariable String codeIATA) {
+	public ResponseEntity<AirlineResponse> getAirlineByCodeIATA(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA) {
 		return ResponseEntity.ok(airlineService.getAirlineByCodeIATA(codeIATA)); 	
 	}
 	
 	@PostMapping
-	public ResponseEntity<AirlineResponse> saveNewAirline(@RequestBody AirlineRequest newAirline) {
+	public ResponseEntity<AirlineResponse> saveNewAirline(@Valid @RequestBody AirlineRequest newAirline) {
 		AirlineResponse newAirlineSaved = airlineService.saveNewAirline(newAirline);
 		URI location = URI.create("/airlines/" + newAirlineSaved.codeIATA());
 		return ResponseEntity.created(location).body(newAirlineSaved);	
 	}
 	
 	@PutMapping("/{codeIATA}")
-	public ResponseEntity<AirlineResponse> updateAirline(@PathVariable String codeIATA, @RequestBody AirlineRequest airlineRequest) {
+	public ResponseEntity<AirlineResponse> updateAirline(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA, @Valid @RequestBody AirlineRequest airlineRequest) {
 	    return ResponseEntity.ok(airlineService.updateAirline(codeIATA, airlineRequest));
 	}
 	
 	@DeleteMapping("/{codeIATA}")
-	public ResponseEntity<Void> deleteAirline(@PathVariable String codeIATA) {
+	public ResponseEntity<Void> deleteAirline(@PathVariable @NotBlank(message = "codeIATA cannot be blank") String codeIATA) {
 	    airlineService.deleteAirlineByCodeIATA(codeIATA);
 	    return ResponseEntity.noContent().build();
 	}

@@ -19,12 +19,6 @@ public class AirportService {
 	@Autowired
 	AirportRepository airportRepository;
 
-	public List<AirportResponse> getAllAirports() {
-		return airportRepository.findAll().stream()
-	        .map(AirportResponse::new)
-	        .toList();
-	}
-
 	public AirportResponse getAirportByCodeIATA(String codeIATA) {
 		return airportRepository.findByCodeIATA(codeIATA)
 				.map(AirportResponse::new)
